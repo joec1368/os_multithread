@@ -14,11 +14,12 @@ typedef struct Array {
 Array_Type *first_array;
 Array_Type *second_array;
 Array_Type *final_array;
+pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
 
 void print_array(Array_Type *array);
 Array_Type *read_array(char* file_name);
 void creat_final_array();
-void multiply_row_col(int first_array_row,int second_array_col);
+void* multiply_row_col(void* data);
 
 int main(int argc, char *argv[]) {
     int thread_number;
@@ -37,14 +38,29 @@ int main(int argc, char *argv[]) {
     second_array = read_array(second_file);
     creat_final_array();
     //print_array(second_array);
+    int temp[2];
+    int avarge_row_to_do = first_array -> row/ thread_number;
+    printf("number : %d \n", thread_number);
+    temp[0] = 0;
+    temp[1] = first_array -> row - (first_array -> row / thread_number) * thread_number + avarge_row_to_do - 1;
 
-    for(int i = 0 ; i < first_array->row ; i++){
-        for(int j = 0 ; j < second_array -> col ; j++){
-            multiply_row_col(i,j);
-        }
+    pthread_t thread[thread_number]; // 宣告 pthread 變數
+    for(int i = 0 ; i < thread_number ; i++){
+        int *buffer;
+        buffer = calloc(2,sizeof (int));
+        buffer[0] = temp[0];
+        buffer[1] = temp[1];
+        pthread_create(&thread[i], NULL, multiply_row_col, buffer); // 建立子執行緒
+        temp[0] = temp[1] + 1;
+        temp[1] += avarge_row_to_do;
     }
-    //print_array(first_array);
-    //print_array(second_array);
+    // 0 : row num start
+    // 1 : row num end
+    for(int i = 0 ; i < thread_number ; i++){
+        pthread_join(thread[i], NULL);
+    }
+
+
     print_array(final_array);
     free(first_array);
     free(second_array);
@@ -93,12 +109,26 @@ void creat_final_array(){
     }
 }
 
-void multiply_row_col(int first_array_row,int second_array_col){
-    int target = 0;
-    for(int i = 0 ; i < first_array->col ; i++){
-        int first = first_array->array[first_array_row][i];
-        int second = second_array -> array[i][second_array_col];
-        target += (first * second);
+void* multiply_row_col(void* data){
+    int *data_Set = (int*) data;
+    int first_array_row_start = data_Set[0] ;
+    int first_array_row_final = data_Set[1];
+    // 0 : row num start
+    // 1 : row num end
+    // 2 : col number;
+    for(int j = first_array_row_start ; j <= first_array_row_final ; j++ ) {
+        for(int z =  0 ; z < second_array -> col ; z++){
+            int target = 0;
+            for (int i = 0; i < first_array->col; i++) {
+                int first = first_array->array[j][i];
+                int second = second_array->array[i][z];
+                target += (first * second);
+            }
+            final_array->array[j][z] = target;
+        }
     }
-    final_array->array[first_array_row][second_array_col] = target;
+    fprintf(stderr,"end : %d \n ", pthread_self());
+    //fprintf(stderr,"end :");
+    free(data);
+    pthread_exit(NULL); // 離開子執行緒
 }
