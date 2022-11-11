@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <sched.h>
 
 
 
@@ -20,8 +21,11 @@ void print_array(Array_Type *array);
 Array_Type *read_array(char* file_name);
 void creat_final_array();
 void* multiply_row_col(void* data);
+void create_file();
+char proc_addr[] = "./proc/thread_info";  // need to be fixed on vm
 
 int main(int argc, char *argv[]) {
+
     int thread_number;
     char* first_file;
     char* second_file;
@@ -34,10 +38,13 @@ int main(int argc, char *argv[]) {
         first_file = argv[2];
         second_file = argv[3];
     }
+
+    create_file();
     first_array = read_array(first_file);
     second_array = read_array(second_file);
     creat_final_array();
-    //print_array(second_array);
+
+
     int temp[2];
     int avarge_row_to_do = first_array -> row/ thread_number;
     printf("number : %d \n", thread_number);
@@ -54,6 +61,7 @@ int main(int argc, char *argv[]) {
         temp[0] = temp[1] + 1;
         temp[1] += avarge_row_to_do;
     }
+
     // 0 : row num start
     // 1 : row num end
     for(int i = 0 ; i < thread_number ; i++){
@@ -127,8 +135,21 @@ void* multiply_row_col(void* data){
             final_array->array[j][z] = target;
         }
     }
-    fprintf(stderr,"end : %d \n ", pthread_self());
+
+    pthread_mutex_lock(&lock1);
+    FILE *fptr;
+    fptr = fopen(proc_addr,"a");
+    fscanf(fptr,"\t end : %d \n ", pthread_self());
+    fclose(fptr);
+    pthread_mutex_unlock(&lock1);
     //fprintf(stderr,"end :");
     free(data);
     pthread_exit(NULL); // 離開子執行緒
+}
+
+void create_file(){
+    FILE *fptr;
+    fptr = fopen(proc_addr,"w");
+    fscanf(fptr,"PID:%d\n ", getpid());
+    fclose(fptr);
 }
