@@ -25,30 +25,36 @@ static char procfs_buffer[PROCFS_MAX_SIZE];
 /* The size of the buffer */ 
 static unsigned long procfs_buffer_size = 0; 
 
-char tid_buffer[200][10];
+char tid_buffer[200][15];
  
 int tid_position = 0;
 
 static ssize_t procfile_read(struct file *filePointer, char __user *buffer, 
                              size_t buffer_length, loff_t *offset) 
 { 
-
-   
-    int len = sizeof(tid_buffer[0]); 
-    ssize_t ret;  
-    int i = 0;
-    for(; i <= tid_position ; i++ ){
-        //*offset = 0;
-        if ( copy_to_user(buffer, tid_buffer[i], len)) { 
-            pr_info("copy_to_user failed\n"); 
-            ret = 0; 
-        } else { 
-            pr_info("procfile read %s \n", filePointer->f_path.dentry->d_name.name);
-            pr_info("procfile read %s \n", tid_buffer[i]); 
-            pr_info("procfile read %s \n", buffer); 
-            *offset += len; 
-        } 
+    char sendbuffer[15*200];
+    int start = 0;
+    int i = 0 ;
+    for(; i < tid_position ; i++){
+        int j = 0 ;
+        for(; j < 15 ; j++){
+            if(tid_buffer[i][j] == '\n'){
+                sendbuffer[start++] = ' ';
+                break;
+            }
+            sendbuffer[start++] = tid_buffer[i][j];
+        }
     }
+    int len = sizeof(char) * start; 
+    ssize_t ret = len;  
+    if (*offset >= len || copy_to_user(buffer, sendbuffer, len)) { 
+        pr_info("copy_to_user failed\n"); 
+        ret = 0; 
+    } else { 
+        pr_info("procfile read %s \n", filePointer->f_path.dentry->d_name.name);
+        *offset += len; 
+    }
+
     //sudo dmesg
 //sudo insmod test.ko
 //sudo lsmod | grep test
@@ -69,21 +75,16 @@ static ssize_t procfile_write(struct file *file, const char __user *buff,
  
     procfs_buffer[procfs_buffer_size & (PROCFS_MAX_SIZE - 1)] = '\0'; 
     int i = 0;
-    int count = 0;
     while(1){
       if(procfs_buffer[i] == '\0' || procfs_buffer[i] == ' ') break;
       if((procfs_buffer[i] - '0') < 0 ) break;
       else{
         tid_buffer[tid_position][i] = procfs_buffer[i]; 
-        count *= 10;
-        count += procfs_buffer[i++] - '0';
+        i++;
       }
     }
-    tid_buffer[tid_position++][i] = '\0';
+    tid_buffer[tid_position++][i] = '\n';
     *off += procfs_buffer_size; 
-    pr_info("procfile write %d\n", count); 
-    
- 
     return procfs_buffer_size; 
 } 
  
