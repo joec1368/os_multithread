@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 
 
 
@@ -20,6 +22,10 @@ void print_array(Array_Type *array);
 Array_Type *read_array(char* file_name);
 void creat_final_array();
 void* multiply_row_col(void* data);
+void write_array_into_file(Array_Type *array);
+char[] answer = "./answer.txt";
+char[] proc = "/proc/thread_info";
+char[] output = "./output.txt";
 
 int main(int argc, char *argv[]) {
     int thread_number;
@@ -38,6 +44,7 @@ int main(int argc, char *argv[]) {
     second_array = read_array(second_file);
     creat_final_array();
     //print_array(second_array);
+
     int temp[2];
     int avarge_row_to_do = first_array -> row/ thread_number;
     printf("number : %d \n", thread_number);
@@ -61,10 +68,27 @@ int main(int argc, char *argv[]) {
     }
 
 
-    print_array(final_array);
+    //print_array(final_array);
+    write_array_into_file(final_array);
     free(first_array);
     free(second_array);
     free(final_array);
+
+
+    // FILE *fptr;
+    // fptr = fopen(output,"w");
+    // fptr2 = fopen(answer,"r");
+    // fprintf(fptr,"PID : %d\n",getpid()); 
+    // for(int i = 0 ; i < thread_number ; i++){
+    //     int tid;
+    //     int time;
+    //     int context;
+    //     fscanf(fptr2,"%d %d %d", &tid,&time,&context);
+    //     fprintf(fptr,"\t ThreadID : %d time : %f(ms) context switch times : %d \n",tid,time,context); 
+    // }
+    // fclose(fptr);
+    // fclose(fptr2);
+
     return 0;
 }
 
@@ -99,6 +123,21 @@ void print_array(Array_Type *array){
     }
 }
 
+void write_array_into_file(Array_Type *array){
+    FILE *fptr;
+    fptr = fopen(answer,"w");
+    fprintf(fptr,"%d %d",array-> row, array->col);
+    for(int i = 0 ; i < array->row ; i++){
+        for(int j = 0 ; j < array->col ; j++){
+            fprintf(fptr,"%d ", array->array[i][j]);
+        }
+        fprintf(fptr,"\n");
+    }
+
+    fclose(fptr);
+
+}
+
 void creat_final_array(){
     final_array = malloc(sizeof (Array_Type));
     final_array -> row = first_array -> row;
@@ -110,6 +149,12 @@ void creat_final_array(){
 }
 
 void* multiply_row_col(void* data){
+    pthread_mutex_lock(&count_mutex);
+    FILE *fptr;
+    fptr = fopen(proc,"a");
+    fprintf(fptr,"%d\n",syscall(__NR_gettid)); 
+    pthread_mutex_unlock(&count_mutex);
+
     int *data_Set = (int*) data;
     int first_array_row_start = data_Set[0] ;
     int first_array_row_final = data_Set[1];
