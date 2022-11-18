@@ -8,7 +8,7 @@
 #define HAVE_PROC_OPS 
 #endif 
  
-#define procfs_name "helloworld" 
+#define procfs_name "thread_info" 
  
 static struct proc_dir_entry *our_proc_file; 
  
