@@ -125,7 +125,7 @@ void print_array(Array_Type *array){
 void write_array_into_file(Array_Type *array){
     FILE *fptr;
     fptr = fopen(answer,"w");
-    fprintf(fptr,"%d %d",array-> row, array->col);
+    fprintf(fptr,"%d %d\n",array-> row, array->col);
     for(int i = 0 ; i < array->row ; i++){
         for(int j = 0 ; j < array->col ; j++){
             fprintf(fptr,"%d ", array->array[i][j]);
