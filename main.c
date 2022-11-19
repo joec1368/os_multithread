@@ -75,24 +75,25 @@ int main(int argc, char *argv[]) {
     free(final_array);
 
 
-    FILE *fptr;
-    FILE *fptr2;
-    fptr = fopen(output,"w");
-    fptr2 = fopen(proc,"r");
-    printf("Start \n");
-    printf("PID : %d\n",getpid()); 
-    for(int i = 0 ; i < thread_number ; i++){
-        //char tid[20];
-        int tid;
-        int time;
-        int context;
-        // fscanf(fptr2,"%d %d %d", &tid,&time,&context);
-        // fprintf(fptr,"\t ThreadID : %d time : %f(ms) context switch times : %d \n",tid,time,context); 
-        fscanf(fptr2,"%d", &tid);
-        printf("%d\n", tid);
-    }
-    fclose(fptr);
-    fclose(fptr2);
+    // FILE *fptr;
+    // FILE *fptr2;
+    // fptr = fopen(output,"w");
+    // fptr2 = fopen(proc,"r");
+    // printf("Start \n");
+    // printf("PID : %d\n",getpid()); 
+    // for(int i = 0 ; i < thread_number ; i++){
+    //     char tid[20];
+    //     char time[20];
+    //     char context[20];
+    //     // fscanf(fptr2,"%d %d %d", &tid,&time,&context);
+    //     // fprintf(fptr,"\t ThreadID : %d time : %f(ms) context switch times : %d \n",tid,time,context); 
+    //     fscanf(fptr2,"%s", tid);
+    //     fscanf(fptr2,"%s", time);
+    //     fscanf(fptr2,"%s", context);
+    //     printf("tid : %s  time : %s  context : %s\n", tid,time,context);
+    // }
+    // fclose(fptr);
+    // fclose(fptr2);
 
     return 0;
 }

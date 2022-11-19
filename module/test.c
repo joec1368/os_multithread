@@ -3,6 +3,7 @@
 #include <linux/proc_fs.h> 
 #include <linux/uaccess.h> 
 #include <linux/version.h> 
+#include <linux/pid.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0) 
 #define HAVE_PROC_OPS 
@@ -76,16 +77,56 @@ static ssize_t procfile_write(struct file *file, const char __user *buff,
  
     procfs_buffer[procfs_buffer_size & (PROCFS_MAX_SIZE - 1)] = '\0'; 
     int i = 0;
+    int number = 0;
     while(1){
       if(procfs_buffer[i] == '\0' || procfs_buffer[i] == ' ') break;
       if((procfs_buffer[i] - '0') < 0 ) break;
       else{
         tid_buffer[tid_position][i] = procfs_buffer[i]; 
+        number *= 10;
+        number += procfs_buffer[i] - '0';
         i++;
       }
     }
     tid_buffer[tid_position++][i] = '\n';
-    pr_info("read : %s\n", tid_buffer[tid_position-1]); 
+    struct task_struct * task=pid_task(number, PIDTYPE_PID); 
+    unsigned long long time = task->utime / 1000000;
+    unsigned long context = task->nvcsw + task->nivcsw;
+    
+    if(time != 0){
+            int j = 0;
+            for(;;j++){
+            if(time == 0){
+                tid_buffer[tid_position++][j] = '\n';
+                break;
+            }
+            int mode = time%10;
+            tid_buffer[tid_position][j] = mode + '0';
+            time /= 10;
+        }
+    }else{
+        tid_buffer[tid_position][0] = '0'; 
+        tid_buffer[tid_position++][1] = '\n';
+    }
+
+    if(context != 0){
+        int j = 0;
+        for(;;j++){
+            if(context == 0){
+                tid_buffer[tid_position++][j] = '\n';
+                break;
+            }
+            int mode = context%10;
+            tid_buffer[tid_position][j] = mode + '0';
+            context /= 10;
+        }
+    }else{
+        tid_buffer[tid_position][0] = '0'; 
+        tid_buffer[tid_position++][1] = '\n';
+    }
+    
+     pr_info("set %s %s %s\n",tid_buffer[-3],tid_buffer[-2],tid_buffer[-1]);
+
     *off += procfs_buffer_size; 
     return procfs_buffer_size; 
 } 
