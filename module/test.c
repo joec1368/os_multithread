@@ -89,21 +89,35 @@ static ssize_t procfile_write(struct file *file, const char __user *buff,
       }
     }
     tid_buffer[tid_position++][i] = '\n';
-    struct task_struct * task=pid_task(number, PIDTYPE_PID); 
+    pr_info("tid : %d\n",number);
+    struct task_struct * task=pid_task(find_get_pid(number), PIDTYPE_PID); 
+    if(task == NULL){
+       pr_info("tid : %d is null\n",number); 
+    }
     unsigned long long time = task->utime / 1000000;
     unsigned long context = task->nvcsw + task->nivcsw;
+
+    pr_info("set %d %llu %lu\n",number,time,context);
     
     if(time != 0){
-            int j = 0;
-            for(;;j++){
+        int j = 0;
+        char temp[15];
+        for(;;j++){
             if(time == 0){
-                tid_buffer[tid_position++][j] = '\n';
+                temp[j] = '\n';
                 break;
             }
             int mode = time%10;
-            tid_buffer[tid_position][j] = mode + '0';
+            temp[j] = mode + '0';
             time /= 10;
         }
+        int i = 0;
+        j--;
+        for(;j >= 0 ;j--){
+            tid_buffer[tid_position][i++] = temp[j];
+        }
+        tid_buffer[tid_position][i] = '\n';
+        tid_position++;
     }else{
         tid_buffer[tid_position][0] = '0'; 
         tid_buffer[tid_position++][1] = '\n';
@@ -111,21 +125,29 @@ static ssize_t procfile_write(struct file *file, const char __user *buff,
 
     if(context != 0){
         int j = 0;
+        char temp[15];
         for(;;j++){
             if(context == 0){
-                tid_buffer[tid_position++][j] = '\n';
+                temp[j] = '\n';
                 break;
             }
             int mode = context%10;
-            tid_buffer[tid_position][j] = mode + '0';
+            temp[j] = mode + '0';
             context /= 10;
         }
+        int i = 0;
+        j--;
+        for(;j >= 0 ;j--){
+            tid_buffer[tid_position][i++] = temp[j];
+        }
+        tid_buffer[tid_position][i] = '\n';
+        tid_position++;
     }else{
         tid_buffer[tid_position][0] = '0'; 
         tid_buffer[tid_position++][1] = '\n';
     }
     
-     pr_info("set %s %s %s\n",tid_buffer[-3],tid_buffer[-2],tid_buffer[-1]);
+    pr_info("set %s %s %s\n",tid_buffer[tid_position - 3],tid_buffer[tid_position - 2],tid_buffer[tid_position - 1]);
 
     *off += procfs_buffer_size; 
     return procfs_buffer_size; 
