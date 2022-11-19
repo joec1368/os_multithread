@@ -23,9 +23,9 @@ Array_Type *read_array(char* file_name);
 void creat_final_array();
 void* multiply_row_col(void* data);
 void write_array_into_file(Array_Type *array);
-char[] answer = "./answer.txt";
-char[] proc = "/proc/thread_info";
-char[] output = "./output.txt";
+char answer[] = "./answer.txt";
+char proc[] = "/proc/thread_info";
+char output[] = "./output.txt";
 
 int main(int argc, char *argv[]) {
     int thread_number;
@@ -75,19 +75,24 @@ int main(int argc, char *argv[]) {
     free(final_array);
 
 
-    // FILE *fptr;
-    // fptr = fopen(output,"w");
-    // fptr2 = fopen(answer,"r");
-    // fprintf(fptr,"PID : %d\n",getpid()); 
-    // for(int i = 0 ; i < thread_number ; i++){
-    //     int tid;
-    //     int time;
-    //     int context;
-    //     fscanf(fptr2,"%d %d %d", &tid,&time,&context);
-    //     fprintf(fptr,"\t ThreadID : %d time : %f(ms) context switch times : %d \n",tid,time,context); 
-    // }
-    // fclose(fptr);
-    // fclose(fptr2);
+    FILE *fptr;
+    FILE *fptr2;
+    fptr = fopen(output,"w");
+    fptr2 = fopen(proc,"r");
+    printf("Start \n");
+    printf("PID : %d\n",getpid()); 
+    for(int i = 0 ; i < thread_number ; i++){
+        //char tid[20];
+        int tid;
+        int time;
+        int context;
+        // fscanf(fptr2,"%d %d %d", &tid,&time,&context);
+        // fprintf(fptr,"\t ThreadID : %d time : %f(ms) context switch times : %d \n",tid,time,context); 
+        fscanf(fptr2,"%d", &tid);
+        printf("%d\n", tid);
+    }
+    fclose(fptr);
+    fclose(fptr2);
 
     return 0;
 }
@@ -149,11 +154,7 @@ void creat_final_array(){
 }
 
 void* multiply_row_col(void* data){
-    pthread_mutex_lock(&count_mutex);
-    FILE *fptr;
-    fptr = fopen(proc,"a");
-    fprintf(fptr,"%d\n",syscall(__NR_gettid)); 
-    pthread_mutex_unlock(&count_mutex);
+
 
     int *data_Set = (int*) data;
     int first_array_row_start = data_Set[0] ;
@@ -172,7 +173,13 @@ void* multiply_row_col(void* data){
             final_array->array[j][z] = target;
         }
     }
-    fprintf(stderr,"end : %d \n ", pthread_self());
+    fprintf(stderr,"end : %d \n ",syscall(__NR_gettid));
+
+    pthread_mutex_lock(&lock1);
+    FILE *fptr;
+    fptr = fopen(proc,"a");
+    fprintf(fptr,"%d\n",syscall(__NR_gettid)); 
+    pthread_mutex_unlock(&lock1);
     //fprintf(stderr,"end :");
     free(data);
     pthread_exit(NULL); // 離開子執行緒

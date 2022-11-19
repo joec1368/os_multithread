@@ -45,6 +45,7 @@ static ssize_t procfile_read(struct file *filePointer, char __user *buffer,
             sendbuffer[start++] = tid_buffer[i][j];
         }
     }
+    pr_info("procfile send %s \n", sendbuffer);
     int len = sizeof(char) * start; 
     ssize_t ret = len;  
     if (*offset >= len || copy_to_user(buffer, sendbuffer, len)) { 
@@ -84,6 +85,7 @@ static ssize_t procfile_write(struct file *file, const char __user *buff,
       }
     }
     tid_buffer[tid_position++][i] = '\n';
+    pr_info("read : %s\n", tid_buffer[tid_position-1]); 
     *off += procfs_buffer_size; 
     return procfs_buffer_size; 
 } 
