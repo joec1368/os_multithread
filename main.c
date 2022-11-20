@@ -23,6 +23,7 @@ Array_Type *read_array(char* file_name);
 void creat_final_array();
 void* multiply_row_col(void* data);
 void write_array_into_file(Array_Type *array);
+void* multiply_col_row(void* data);
 char answer[] = "./answer.txt";
 char proc[] = "/proc/thread_info";
 
@@ -43,25 +44,44 @@ int main(int argc, char *argv[]) {
     second_array = read_array(second_file);
     creat_final_array();
     //print_array(second_array);
-
-    int temp[2];
-    int avarge_row_to_do = first_array -> row/ thread_number;
+    pthread_t thread[thread_number];
     printf("number : %d \n", thread_number);
-    temp[0] = 0;
-    temp[1] = first_array -> row - (first_array -> row / thread_number) * thread_number + avarge_row_to_do - 1;
+    int temp[2];
 
-    pthread_t thread[thread_number]; // 宣告 pthread 變數
-    for(int i = 0 ; i < thread_number ; i++){
-        int *buffer;
-        buffer = calloc(2,sizeof (int));
-        buffer[0] = temp[0];
-        buffer[1] = temp[1];
-        pthread_create(&thread[i], NULL, multiply_row_col, buffer); // 建立子執行緒
-        temp[0] = temp[1] + 1;
-        temp[1] += avarge_row_to_do;
+    if(first_array -> row >= thread_number){
+        int avarge_row_to_do = first_array -> row/ thread_number;
+        temp[0] = 0;
+        temp[1] = first_array -> row - (first_array -> row / thread_number) * thread_number + avarge_row_to_do - 1;
+
+        for(int i = 0 ; i < thread_number ; i++){
+            int *buffer;
+            buffer = calloc(2,sizeof (int));
+            buffer[0] = temp[0];
+            buffer[1] = temp[1];
+            pthread_create(&thread[i], NULL, multiply_row_col, buffer); // 建立子執行緒
+            temp[0] = temp[1] + 1;
+            temp[1] += avarge_row_to_do;
+        }
+        // 0 : row num start
+        // 1 : row num end
+    }else{
+        int avarge_col_to_do = second_array->col/thread_number;
+        temp[0] = 0;
+        temp[1] = second_array -> col - (second_array -> col / thread_number) * thread_number + avarge_col_to_do - 1;
+
+        for(int i = 0 ; i < thread_number ; i++){
+            int *buffer;
+            buffer = calloc(2,sizeof (int));
+            buffer[0] = temp[0]; // start position
+            buffer[1] = temp[1]; // the number that need to be multiplied , the unit is col
+            pthread_create(&thread[i], NULL, multiply_col_row, buffer); // 建立子執行緒
+            temp[0] = temp[1] + 1;
+            temp[1] += avarge_col_to_do;
+        }
+        // 0 : col num start
+        // 1 : col num end
     }
-    // 0 : row num start
-    // 1 : row num end
+
     for(int i = 0 ; i < thread_number ; i++){
         pthread_join(thread[i], NULL);
     }
@@ -147,7 +167,7 @@ void creat_final_array(){
     }
 }
 
-void* multiply_row_col(void* data){
+void* multiply_row_col(void* data){//以row 為主
 
 
     int *data_Set = (int*) data;
@@ -180,3 +200,34 @@ void* multiply_row_col(void* data){
     free(data);
     pthread_exit(NULL); // 離開子執行緒
 }
+
+void* multiply_col_row(void* data){ // 以col 為主
+    int *data_Set = (int*) data;
+    int second_array_col_start = data_Set[0] ;
+    int second_array_col_final = data_Set[1];
+    // 0 : col num start
+    // 1 : col num end
+    for(int j = second_array_col_start ; j <= second_array_col_final ; j++ ) {
+        for(int z =  0 ; z < first_array -> row ; z++){
+            int target = 0;
+            for (int i = 0; i < first_array->col; i++) {
+                int first = first_array->array[z][i];
+                int second = second_array->array[i][j];
+                target += (first * second);
+            }
+            final_array->array[z][j] = target;
+        }
+    }
+
+    pthread_mutex_lock(&lock1);
+    FILE *fptr;
+    fptr = fopen(proc,"a");
+    fprintf(fptr,"%d\n",syscall(__NR_gettid));
+    fclose(fptr);
+    pthread_mutex_unlock(&lock1);
+    //fprintf(stderr,"end : %d \n ",syscall(__NR_gettid));
+    //fprintf(stderr,"end :");
+    free(data);
+    pthread_exit(NULL); // 離開子執行緒
+}
+
