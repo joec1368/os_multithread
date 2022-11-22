@@ -192,6 +192,10 @@ void* multiply_row_col(void* data){//以row 為主
     pthread_mutex_lock(&lock1);
     FILE *fptr;
     fptr = fopen(proc,"w");
+    if(fptr == NULL){
+    	printf("is NULL");
+    	fflush(stdout);
+    }
     fprintf(fptr,"%d\n",syscall(__NR_gettid)); 
     fclose(fptr);
     pthread_mutex_unlock(&lock1);
@@ -222,6 +226,10 @@ void* multiply_col_row(void* data){ // 以col 為主
     pthread_mutex_lock(&lock1);
     FILE *fptr;
     fptr = fopen(proc,"w");
+    if(fptr == NULL){
+    	printf("is NULL");
+    	fflush(stdout);
+    }
     fprintf(fptr,"%d\n",syscall(__NR_gettid));
     fclose(fptr);
     pthread_mutex_unlock(&lock1);
