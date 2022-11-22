@@ -19,6 +19,7 @@ Array_Type *final_array;
 pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
 
 void print_array(Array_Type *array);
+Array_Type * reverse(Array_Type *ori_array);
 Array_Type *read_array(char* file_name);
 void creat_final_array();
 void* multiply_row_col(void* data);
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
     }
     first_array = read_array(first_file);
     second_array = read_array(second_file);
+    second_array = reverse(second_array);
     creat_final_array();
     //print_array(second_array);
     pthread_t thread[thread_number];
@@ -65,9 +67,9 @@ int main(int argc, char *argv[]) {
         // 0 : row num start
         // 1 : row num end
     }else{
-        int avarge_col_to_do = second_array->col/thread_number;
+        int avarge_col_to_do = second_array->row/thread_number;
         temp[0] = 0;
-        temp[1] = second_array -> col - (second_array -> col / thread_number) * thread_number + avarge_col_to_do - 1;
+        temp[1] = second_array -> row - (second_array -> row / thread_number) * thread_number + avarge_col_to_do - 1;
 
         for(int i = 0 ; i < thread_number ; i++){
             int *buffer;
@@ -160,10 +162,10 @@ void write_array_into_file(Array_Type *array){
 void creat_final_array(){
     final_array = malloc(sizeof (Array_Type));
     final_array -> row = first_array -> row;
-    final_array -> col = second_array -> col;
+    final_array -> col = second_array -> row;
     final_array->array = calloc(first_array->row, sizeof (int*));
     for(int i = 0 ; i < first_array -> row ; i ++){
-        final_array -> array[i] = calloc(second_array->col , sizeof (int));
+        final_array -> array[i] = calloc(second_array->row , sizeof (int));
     }
 }
 
@@ -177,11 +179,11 @@ void* multiply_row_col(void* data){//以row 為主
     // 1 : row num end
     // 2 : col number;
     for(int j = first_array_row_start ; j <= first_array_row_final ; j++ ) {
-        for(int z =  0 ; z < second_array -> col ; z++){
+        for(int z =  0 ; z < second_array -> row ; z++){
             int target = 0;
             for (int i = 0; i < first_array->col; i++) {
                 int first = first_array->array[j][i];
-                int second = second_array->array[i][z];
+                int second = second_array->array[z][i];
                 target += (first * second);
             }
             final_array->array[j][z] = target;
@@ -216,7 +218,7 @@ void* multiply_col_row(void* data){ // 以col 為主
             int target = 0;
             for (int i = 0; i < first_array->col; i++) {
                 int first = first_array->array[z][i];
-                int second = second_array->array[i][j];
+                int second = second_array->array[j][i];
                 target += (first * second);
             }
             final_array->array[z][j] = target;
@@ -239,3 +241,20 @@ void* multiply_col_row(void* data){ // 以col 為主
     pthread_exit(NULL); // 離開子執行緒
 }
 
+Array_Type * reverse(Array_Type *ori_array){
+    Array_Type *array;
+    array = malloc(sizeof (Array_Type));
+    array -> row = ori_array -> col;
+    array -> col = ori_array -> row; 
+    
+    array->array = malloc(sizeof (int *) * array->row);
+    for(int i = 0 ; i < array->row ; i++){
+        array->array[i] = calloc(array->col ,sizeof (int ));
+    }
+    for(int i = 0 ; i < ori_array->row ; i++){
+        for(int j = 0 ; j < ori_array->col ; j++){
+            array->array[j][i] = ori_array->array[i][j];
+        }
+    }
+    return array; 
+}

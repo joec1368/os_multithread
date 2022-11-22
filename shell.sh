@@ -49,4 +49,3 @@ rm ./a.out
 cd module
 make clean
 cd ..
-sudo rmmod test
