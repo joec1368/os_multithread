@@ -25,7 +25,7 @@ void creat_final_array();
 void* multiply_row_col(void* data);
 void write_array_into_file(Array_Type *array);
 void* multiply_col_row(void* data);
-char answer[] = "./answer.txt";
+char answer[] = "./result.txt";
 char proc[] = "/proc/thread_info";
 
 int main(int argc, char *argv[]) {
