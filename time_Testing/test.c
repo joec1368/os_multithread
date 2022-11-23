@@ -56,6 +56,7 @@ static ssize_t procfile_read(struct file *filePointer, char __user *buffer,
         pr_info("procfile read %s \n", filePointer->f_path.dentry->d_name.name);
         *offset += len; 
     }
+    tid_position = 0;
 
     //sudo dmesg
 //sudo insmod test.ko
