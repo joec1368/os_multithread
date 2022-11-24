@@ -10,7 +10,7 @@
 typedef struct Array {
     int col;
     int row;
-    int** array;
+    unsigned long int** array;
 } Array_Type;
 
 Array_Type *first_array;
@@ -121,14 +121,14 @@ Array_Type *read_array(char* file_name){
     fscanf(fptr,"%d", &array->row);
     fscanf(fptr,"%d", &array->col);
 
-    array->array = malloc(sizeof (int *) * array->row);
+    array->array = malloc(sizeof (unsigned long int *) * array->row);
     for(int i = 0 ; i < array->row ; i++){
-        array->array[i] = calloc(array->col ,sizeof (int ));
+        array->array[i] = calloc(array->col ,sizeof (unsigned long int ));
     }
     for(int i = 0 ; i < array->row ; i++){
         for(int j = 0 ; j < array->col ; j++){
-            int temp;
-            fscanf(fptr,"%d", &temp);
+            unsigned long int temp;
+            fscanf(fptr,"%lu", &temp);
             array->array[i][j] = temp;
         }
     }
@@ -138,7 +138,7 @@ Array_Type *read_array(char* file_name){
 void print_array(Array_Type *array){
     for(int i = 0 ; i < array->row ; i++){
         for(int j = 0 ; j < array->col ; j++){
-            printf("%d ", array->array[i][j]);
+            printf("%lu ", array->array[i][j]);
         }
         printf("\n");
     }
@@ -150,7 +150,7 @@ void write_array_into_file(Array_Type *array){
     fprintf(fptr,"%d %d\n",array-> row, array->col);
     for(int i = 0 ; i < array->row ; i++){
         for(int j = 0 ; j < array->col ; j++){
-            fprintf(fptr,"%d ", array->array[i][j]);
+            fprintf(fptr,"%lu ", array->array[i][j]);
         }
         fprintf(fptr,"\n");
     }
@@ -163,9 +163,9 @@ void creat_final_array(){
     final_array = malloc(sizeof (Array_Type));
     final_array -> row = first_array -> row;
     final_array -> col = second_array -> row;
-    final_array->array = calloc(first_array->row, sizeof (int*));
+    final_array->array = calloc(first_array->row, sizeof (unsigned long int*));
     for(int i = 0 ; i < first_array -> row ; i ++){
-        final_array -> array[i] = calloc(second_array->row , sizeof (int));
+        final_array -> array[i] = calloc(second_array->row , sizeof (unsigned long int));
     }
 }
 
@@ -180,10 +180,10 @@ void* multiply_row_col(void* data){//以row 為主
     // 2 : col number;
     for(int j = first_array_row_start ; j <= first_array_row_final ; j++ ) {
         for(int z =  0 ; z < second_array -> row ; z++){
-            int target = 0;
+            unsigned long int target = 0;
             for (int i = 0; i < first_array->col; i++) {
-                int first = first_array->array[j][i];
-                int second = second_array->array[z][i];
+                unsigned long int first = first_array->array[j][i];
+                unsigned long int second = second_array->array[z][i];
                 target += (first * second);
             }
             final_array->array[j][z] = target;
@@ -215,10 +215,10 @@ void* multiply_col_row(void* data){ // 以col 為主
     // 1 : col num end
     for(int j = second_array_col_start ; j <= second_array_col_final ; j++ ) {
         for(int z =  0 ; z < first_array -> row ; z++){
-            int target = 0;
+            unsigned long int target = 0;
             for (int i = 0; i < first_array->col; i++) {
-                int first = first_array->array[z][i];
-                int second = second_array->array[j][i];
+                unsigned long int first = first_array->array[z][i];
+                unsigned long int second = second_array->array[j][i];
                 target += (first * second);
             }
             final_array->array[z][j] = target;
@@ -247,9 +247,9 @@ Array_Type * reverse(Array_Type *ori_array){
     array -> row = ori_array -> col;
     array -> col = ori_array -> row; 
     
-    array->array = malloc(sizeof (int *) * array->row);
+    array->array = malloc(sizeof (unsigned long int *) * array->row);
     for(int i = 0 ; i < array->row ; i++){
-        array->array[i] = calloc(array->col ,sizeof (int ));
+        array->array[i] = calloc(array->col ,sizeof (unsigned long int ));
     }
     for(int i = 0 ; i < ori_array->row ; i++){
         for(int j = 0 ; j < ori_array->col ; j++){
