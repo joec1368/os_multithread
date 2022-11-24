@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     creat_final_array();
     //print_array(second_array);
     pthread_t thread[thread_number];
-    printf("number : %d \n", thread_number);
+    //printf("number : %d \n", thread_number);
     int temp[2];
 
     if(first_array -> row >= thread_number){

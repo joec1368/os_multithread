@@ -19,9 +19,8 @@ do
         diff result.txt ${parallelized}/result.txt
         echo ""
     done
-    make unload
     rm ./result.txt
-    make clean
 done
-
+make unload 
+make clean
 
